@@ -1,14 +1,15 @@
 // api/chart.ts
+import { readFileSync } from "fs";
+import { join } from "path";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import satori from "satori";
 
 export const config = { runtime: "nodejs" };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const fontResponse = await fetch(
-    "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff",
+  const fontData = readFileSync(
+    join(process.cwd(), "public/fonts/Inter_18pt-Regular.ttf"),
   );
-  const fontData = await fontResponse.arrayBuffer();
 
   const data = JSON.parse((req.query.data as string) || "[]") as number[];
   const labels = JSON.parse((req.query.labels as string) || "[]") as string[];
@@ -118,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     fonts: [
       {
         name: "Inter",
-        data: fontData, // ✅ font wajib ada
+        data: fontData.buffer as ArrayBuffer,
         weight: 400,
         style: "normal",
       },
