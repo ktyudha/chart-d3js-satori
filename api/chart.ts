@@ -1,7 +1,15 @@
-export const config = { runtime: "nodejs" };
+// api/chart.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import satori from "satori";
+
+export const config = { runtime: "nodejs" };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const fontResponse = await fetch(
+    "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff",
+  );
+  const fontData = await fontResponse.arrayBuffer();
+
   const data = JSON.parse((req.query.data as string) || "[]") as number[];
   const labels = JSON.parse((req.query.labels as string) || "[]") as string[];
   const title = (req.query.title as string) || "";
@@ -11,9 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const H = 280;
   const chartH = 180;
   const max = Math.max(...data) || 100;
-
-  // Paket ini tidak butuh native binary
-  const { default: satori } = await import("satori");
 
   const el = (type: string, style: Record<string, any>, children?: any) => ({
     type,
@@ -30,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       height: `${H}px`,
       background: "white",
       padding: "16px 20px 0",
-      fontFamily: "sans-serif",
+      fontFamily: "Inter",
     },
     [
       title
@@ -110,7 +115,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const svg = await satori(node as any, {
     width: W,
     height: H,
-    fonts: [],
+    fonts: [
+      {
+        name: "Inter",
+        data: fontData, // ✅ font wajib ada
+        weight: 400,
+        style: "normal",
+      },
+    ],
   });
 
   res.setHeader("Content-Type", "image/svg+xml");
