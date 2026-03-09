@@ -1,14 +1,7 @@
 // api/chart.ts
 import satori from "satori";
-import { Resvg } from "@resvg/resvg-js";
-
+// api/chart.ts
 export const config = { runtime: "nodejs" };
-
-// Helper biar lebih clean
-const el = (type: string, style: Record<string, any>, children?: any) => ({
-  type,
-  props: { style, children },
-});
 
 export default async function handler(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -23,6 +16,14 @@ export default async function handler(req: Request) {
   const chartH = 180;
   const max = Math.max(...data) || 100;
 
+  // Paket ini tidak butuh native binary
+  const { default: satori } = await import("satori");
+
+  const el = (type: string, style: Record<string, any>, children?: any) => ({
+    type,
+    props: { style, children },
+  });
+
   const node = el(
     "div",
     {
@@ -36,7 +37,6 @@ export default async function handler(req: Request) {
       fontFamily: "sans-serif",
     },
     [
-      // Title
       title
         ? el(
             "div",
@@ -51,7 +51,6 @@ export default async function handler(req: Request) {
           )
         : null,
 
-      // Bars
       el(
         "div",
         {
@@ -61,7 +60,7 @@ export default async function handler(req: Request) {
           height: `${chartH}px`,
           borderBottom: "1.5px solid #9ca3af",
         },
-        data.map((value, i) =>
+        data.map((value) =>
           el(
             "div",
             {
@@ -81,7 +80,6 @@ export default async function handler(req: Request) {
                 },
                 String(value),
               ),
-
               el("div", {
                 width: "48px",
                 height: `${(value / max) * chartH * 0.85}px`,
@@ -93,14 +91,9 @@ export default async function handler(req: Request) {
         ),
       ),
 
-      // X Labels
       el(
         "div",
-        {
-          display: "flex",
-          gap: "16px",
-          marginTop: 8,
-        },
+        { display: "flex", gap: "16px", marginTop: 8 },
         labels.map((label) =>
           el(
             "div",
@@ -124,14 +117,8 @@ export default async function handler(req: Request) {
     fonts: [],
   });
 
-  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: W } });
-  const png = resvg.render().asPng();
-  const buffer = new Uint8Array(png);
-
-  return new Response(buffer, {
-    headers: {
-      "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=3600",
-    },
+  // ✅ Return SVG langsung — tidak butuh @resvg
+  return new Response(svg, {
+    headers: { "Content-Type": "image/svg+xml" },
   });
 }
