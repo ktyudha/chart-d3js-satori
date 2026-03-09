@@ -2,7 +2,7 @@
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 
-export const config = { runtime: "edge" };
+export const config = { runtime: "nodejs" };
 
 // Helper biar lebih clean
 const el = (type: string, style: Record<string, any>, children?: any) => ({
