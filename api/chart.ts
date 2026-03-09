@@ -1,15 +1,11 @@
-// api/chart.ts
-import satori from "satori";
-// api/chart.ts
 export const config = { runtime: "nodejs" };
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(req: Request) {
-  const { searchParams } = new URL(req.url);
-
-  const data = JSON.parse(searchParams.get("data") || "[]") as number[];
-  const labels = JSON.parse(searchParams.get("labels") || "[]") as string[];
-  const title = searchParams.get("title") || "";
-  const color = searchParams.get("color") || "#4e8ef7";
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const data = JSON.parse((req.query.data as string) || "[]") as number[];
+  const labels = JSON.parse((req.query.labels as string) || "[]") as string[];
+  const title = (req.query.title as string) || "";
+  const color = (req.query.color as string) || "#4e8ef7";
 
   const W = 520;
   const H = 280;
@@ -117,8 +113,6 @@ export default async function handler(req: Request) {
     fonts: [],
   });
 
-  // ✅ Return SVG langsung — tidak butuh @resvg
-  return new Response(svg, {
-    headers: { "Content-Type": "image/svg+xml" },
-  });
+  res.setHeader("Content-Type", "image/svg+xml");
+  res.send(svg);
 }
